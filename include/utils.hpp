@@ -26,5 +26,6 @@
 namespace utils
 {
 	ExitStatus validateNroFile(std::ifstream& inStream, NroHeader& nroHeader);
+	ExitStatus createNsoFromNro(std::ifstream& nroStream, std::ofstream& nsoStream, NroHeader& nroHeader, std::filesystem::path assetOutPath, bool decompressSegments, bool verifySegments);
 };
 #endif
