@@ -13,8 +13,7 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with this program located in the file LICENSE.md found at
- * the root of the project directory. If not, see
+ * along with this program located in the file LICENSE. If not, see
  * <https://www.gnu.org/licenses/>.
  */
 
