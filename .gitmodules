@@ -1,0 +1,6 @@
+[submodule "libs/cxxopts"]
+	path = libs/cxxopts
+	url = https://eXhumer@github.com/jarro2783/cxxopts.git
+[submodule "libs/lz4"]
+	path = libs/lz4
+	url = https://eXhumer@github.com/lz4/lz4.git
