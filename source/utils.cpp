@@ -21,9 +21,12 @@
 
 ExitStatus utils::validateNroFile(std::ifstream& inStream, NroHeader& nroHeader)
 {
-	inStream.seekg(0);
-	inStream.read((char*)&nroHeader, sizeof(NroHeader));
-	if(nroHeader.magic != NRO_MAGIC)
-		return ExitFailInputInvalidNROMagic;
-	return ExitSuccess;
+	if(inStream.good())
+	{
+		inStream.seekg(0);
+		inStream.read((char*)&nroHeader, sizeof(NroHeader));
+		if(inStream.good())
+			return (nroHeader.magic == NRO_MAGIC) ? ExitSuccess : ExitFailInputInvalidNROMagic;
+	}
+	return ExitFailInputReadError;
 }
