@@ -7,8 +7,6 @@
 #include "utils.hpp"
 #include "nro.hpp"
 
-#define APP_NAME "nro2nso"
-
 int main(int argc, char* argv[])
 {
 	cxxopts::Options options(APP_NAME, "Create NSO from NRO. Can be used to convert NRO to NSP.");
