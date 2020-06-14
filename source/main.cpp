@@ -25,6 +25,7 @@
 #include "cxxopts.hpp"
 #include "utils.hpp"
 #include "nro.hpp"
+#include "nso.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -54,26 +55,40 @@ int main(int argc, char* argv[])
 	std::filesystem::path outPath(outPathStr);
 	std::filesystem::path assetOutPath(assetOutPathStr);
 
-	if(argResults.count("input") == 0 || argResults.count("output") == 0)
-		showUsage = true;
+	showUsage = (((argResults.count("input") == 0) || (argResults.count("output") == 0)) && showUsage == false);
 
 	if(!showUsage)
 	{
 		// check if output file already exists, warning of overwrite
-		if(std::filesystem::exists(assetOutPath/"control.nacp"))
-			std::cerr << "WARNING: control.nacp already exists! File will be overwritten!\n";
+		if(std::filesystem::exists(assetOutPath))
+		{
+			if(!std::filesystem::is_directory(assetOutPath))
+			{
+				if(std::filesystem::exists(assetOutPath/"control.nacp"))
+					std::cerr << "WARNING: control.nacp already exists! File will be overwritten!\n";
 
-		if(std::filesystem::exists(assetOutPath/"romfs.bin"))
-			std::cerr << "WARNING: romfs.bin already exists! File will be overwritten!\n";
+				if(std::filesystem::exists(assetOutPath/"romfs.bin"))
+					std::cerr << "WARNING: romfs.bin already exists! File will be overwritten!\n";
 
-		if(std::filesystem::exists(assetOutPath/"icon.jpg"))
-			std::cerr << "WARNING: icon.jpg already exists! File will be overwritten!\n";
+				if(std::filesystem::exists(assetOutPath/"icon.jpg"))
+					std::cerr << "WARNING: icon.jpg already exists! File will be overwritten!\n";
+			}
+			else
+			{
+				std::cerr << "Output assets path already exists, but is not a directory! Unable to continue.\n";
+				return ExitFailOutputAssetPathNotDirectory;
+			}
+		}
+		else
+		{
+			std::filesystem::create_directory(assetOutPath);
+		}
 
 		// create stream for input file, exit if cant
-		std::ifstream inStream;
-		inStream.open(inPath, std::ios::binary | std::ios::in);
+		std::ifstream nroStream;
+		nroStream.open(inPath, std::ios::binary | std::ios::in);
 
-		if(!inStream.is_open())
+		if(!nroStream.is_open())
 		{
 			std::cerr << "ERROR: Unable to open input file!\n";
 			return ExitFailInputUnableToOpen;
@@ -82,19 +97,40 @@ int main(int argc, char* argv[])
 		NroHeader nroHeader;
 
 		// perform validation test on nro and store results
-		ExitStatus validationResult = utils::validateNroFile(inStream, nroHeader);
+		ExitStatus validationResult = utils::validateNroFile(nroStream, nroHeader);
 
 		// exit immediately closing input stream if it fails NRO0 magic check
-		if(validationResult == ExitFailInputInvalidNROMagic)
+		if(validationResult != ExitSuccess)
 		{
-			std::cerr << "ERROR: Invalid NRO magic!\nInput file is not a valid NRO file.\n";
-			inStream.close();
+			nroStream.close();
+			std::cerr << "ERROR: Failed NRO Validation!\nReason: ";
+			if(validationResult == ExitFailInputInvalidNROMagic)
+				std::cout << "Invalid NRO Magic!\n";
+			else if(validationResult == ExitFailInputReadError)
+				std::cout << "Unable to read from input file!\n";
 			return validationResult;
 		}
 
-		// TODO - Make NSO header & export NRO data as NSO
-	}
+		// create stream for output file, exit if cant
+		std::ofstream nsoStream;
+		nsoStream.open(outPath, std::ios::binary | std::ios::out);
 
-	std::cout << helpMessage << "\n";
-	return ExitUsage;
+		if(!nsoStream.is_open())
+		{
+			nroStream.close();
+			std::cerr << "ERROR: Unable to open output file!\n";
+			return ExitFailOutputUnableToOpen;
+		}
+
+		ExitStatus createResult = utils::createNsoFromNro(nroStream, nsoStream, nroHeader, assetOutPath, decompressSegments, verifySegments);
+		nroStream.close();
+		nsoStream.close();
+		return createResult;
+	}
+	else
+	{
+		std::cout << "Test" << "\n";
+		std::cout << helpMessage << "\n";
+		return ExitUsage;
+	}
 }
