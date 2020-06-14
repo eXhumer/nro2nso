@@ -22,7 +22,9 @@
 #include <stdint.h>
 #include <array>
 
-typedef struct
+#define NSO_MAGIC 0x304F534E
+
+struct NsoHeader
 {
 	uint32_t magic;
 	uint32_t version;
@@ -31,7 +33,7 @@ typedef struct
 	NsoSegmentHeader textSegmentHeader;
 	NsoSegmentHeader roSegmentHeader;
 	NsoSegmentHeader dataSegmentHeader;
-	std::array<uint8_t, 0x20> buildId;
+	std::array<uint8_t, 0x20> moduleId;
 	uint32_t textCmpSize;
 	uint32_t roCmpSize;
 	uint32_t dataCmpSize;
@@ -42,19 +44,19 @@ typedef struct
 	std::array<uint8_t, 0x20> textHash;
 	std::array<uint8_t, 0x20> roHash;
 	std::array<uint8_t, 0x20> dataHash;
-} NsoHeader;
+};
 
-typedef struct
+struct NsoSegmentHeader
 {
 	uint32_t fileOff;
 	uint32_t memOff;
 	uint32_t sizeDec;
 	uint32_t cSize;
-} NsoSegmentHeader;
+};
 
-typedef struct
+struct NsoSegmentHeaderRelative
 {
 	uint32_t offset;
 	uint32_t size;
-} NsoSegmentHeaderRelative;
+};
 #endif

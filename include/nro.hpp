@@ -33,7 +33,7 @@ typedef struct
 
 typedef struct
 {
-	uint32_t fileOffset;
+	uint32_t memOff;
 	uint32_t size;
 } NroSegmentHeader;
 

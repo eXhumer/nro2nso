@@ -21,11 +21,13 @@
 #define UTILS_HPP
 #include "exitstatus.hpp"
 #include "nro.hpp"
+#include <filesystem>
 #include <fstream>
 
 namespace utils
 {
 	ExitStatus validateNroFile(std::ifstream& inStream, NroHeader& nroHeader);
-	ExitStatus createNsoFromNro(std::ifstream& nroStream, std::ofstream& nsoStream, NroHeader& nroHeader, std::filesystem::path assetOutPath, bool decompressSegments, bool verifySegments);
+	ExitStatus extractAssets(std::filesystem::path outDirPath);
+	ExitStatus createNsoFromNro(std::ifstream& nroStream, std::ofstream& nsoStream, NroHeader& nroHeader, bool decompressSegments, bool verifySegments);
 };
 #endif

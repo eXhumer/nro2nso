@@ -30,6 +30,8 @@ enum ExitStatus
 	ExitFailOutputUnableToOpen,
 	ExitFailOutputWriteError,
 	ExitFailOutputAssetPathNotDirectory,
+	ExitCompressError,
+	ExitHashError,
 	ExitUsage
 };
 #endif

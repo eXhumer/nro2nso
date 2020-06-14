@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 		// check if output file already exists, warning of overwrite
 		if(std::filesystem::exists(assetOutPath))
 		{
-			if(!std::filesystem::is_directory(assetOutPath))
+			if(std::filesystem::is_directory(assetOutPath))
 			{
 				if(std::filesystem::exists(assetOutPath/"control.nacp"))
 					std::cerr << "WARNING: control.nacp already exists! File will be overwritten!\n";
@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
 			}
 			else
 			{
-				std::cerr << "Output assets path already exists, but is not a directory! Unable to continue.\n";
+				std::cerr << "ERROR: Output assets path already exists, but is not a directory! Unable to continue.\n";
 				return ExitFailOutputAssetPathNotDirectory;
 			}
 		}
@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
 			return ExitFailOutputUnableToOpen;
 		}
 
-		ExitStatus createResult = utils::createNsoFromNro(nroStream, nsoStream, nroHeader, assetOutPath, decompressSegments, verifySegments);
+		ExitStatus createResult = utils::createNsoFromNro(nroStream, nsoStream, nroHeader, decompressSegments, verifySegments);
 		nroStream.close();
 		nsoStream.close();
 		return createResult;
