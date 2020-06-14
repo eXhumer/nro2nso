@@ -182,7 +182,13 @@ ExitStatus utils::createNsoFromNro(std::ifstream& nroStream, std::ofstream& nsoS
 		dataSegment.resize(0);
 	}
 
-	// TODO - Get .api_info/.dynstr/.dynsym SegmentHeaderRelative for NSO
+	nsoHeader.apiInfo.offset = 0;
+	nsoHeader.apiInfo.size = 0;
+	nsoHeader.dynstr.offset = 0;
+	nsoHeader.dynstr.size = 0;
+	nsoHeader.dynsym.offset = 0;
+	nsoHeader.dynsym.size = 0;
+	nsoHeader.reserved2.fill(0);
 
 	if(nsoStream.good())
 	{
