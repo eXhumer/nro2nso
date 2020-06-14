@@ -29,6 +29,7 @@ enum ExitStatus
 	ExitFailOutputAlreadyExists,
 	ExitFailOutputUnableToOpen,
 	ExitFailOutputWriteError,
+	ExitFailOutputAssetPathNotDirectory,
 	ExitUsage
 };
 #endif
