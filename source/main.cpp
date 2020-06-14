@@ -129,7 +129,6 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-		std::cout << "Test" << "\n";
 		std::cout << helpMessage << "\n";
 		return ExitUsage;
 	}
