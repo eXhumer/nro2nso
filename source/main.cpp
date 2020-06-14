@@ -40,13 +40,6 @@ int main(int argc, char* argv[])
 
 	if(!showUsage)
 	{
-		// check if no output passed
-		if(argResults.count("output") == 0)
-		{
-			std::cerr << "ERROR: No output file specified!\n";
-			return ExitFailInputNonExistant;
-		}
-
 		// check if output file already exists, warning of overwrite
 		if(std::filesystem::exists(assetOutPath/"control.nacp"))
 			std::cerr << "WARNING: control.nacp already exists! File will be overwritten!\n";
