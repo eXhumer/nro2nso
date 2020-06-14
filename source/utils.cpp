@@ -48,7 +48,7 @@ uint32_t getNsoFlags(bool decompressSegments, bool verifySegments)
 
 ExitStatus utils::extractAssets(std::filesystem::path outDirPath)
 {
-
+	// TODO - Implement Asset Extraction function
 }
 
 int compressLz4(std::vector<uint8_t>& inData, std::vector<uint8_t>& outData)
@@ -73,6 +73,12 @@ ExitStatus utils::createNsoFromNro(std::ifstream& nroStream, std::ofstream& nsoS
 
 	// set header magic
 	nsoHeader.magic = NSO_MAGIC;
+
+	// set header version
+	nsoHeader.version = 0;
+
+	// set header reserved 1 as 0
+	nsoHeader.reserved1 = 0;
 
 	// set header flags
 	nsoHeader.flags = getNsoFlags(decompressSegments, verifySegments);
@@ -117,6 +123,7 @@ ExitStatus utils::createNsoFromNro(std::ifstream& nroStream, std::ofstream& nsoS
 			if(textSegment.data()[i-1] != 0)
 			{
 				textSegment.resize(textSegment.size() - i);
+				nsoHeader.textSegmentHeader.sizeDec = textSegment.size();
 				break;
 			}
 			continue;
@@ -127,6 +134,7 @@ ExitStatus utils::createNsoFromNro(std::ifstream& nroStream, std::ofstream& nsoS
 			if(roSegment.data()[i-1] != 0)
 			{
 				roSegment.resize(roSegment.size() - i);
+				nsoHeader.roSegmentHeader.sizeDec = roSegment.size();
 				break;
 			}
 			continue;
@@ -137,6 +145,7 @@ ExitStatus utils::createNsoFromNro(std::ifstream& nroStream, std::ofstream& nsoS
 			if(dataSegment.data()[i-1] != 0)
 			{
 				dataSegment.resize(dataSegment.size() - i);
+				nsoHeader.dataSegmentHeader.sizeDec = dataSegment.size();
 				break;
 			}
 			continue;
@@ -162,23 +171,38 @@ ExitStatus utils::createNsoFromNro(std::ifstream& nroStream, std::ofstream& nsoS
 		auto dataHash = textHashCtx->final();
 		std::copy(dataHash.begin(), dataHash.end(), nsoHeader.dataHash.begin());
 	}
+	else
+	{
+		nsoHeader.textHash.fill(0);
+		nsoHeader.roHash.fill(0);
+		nsoHeader.dataHash.fill(0);
+	}
 
+	std::vector<uint8_t> textSegmentCompressed;
 	std::vector<uint8_t> roSegmentCompressed;
 	std::vector<uint8_t> dataSegmentCompressed;
-	std::vector<uint8_t> textSegmentCompressed;
 
-	if(!decompressSegments)
+	if(decompressSegments)
+	{
+		nsoHeader.textCmpSize = textSegment.size();
+		nsoHeader.roCmpSize = roSegment.size();
+		nsoHeader.dataCmpSize = dataSegment.size();
+	}
+	else
 	{
 		if(compressLz4(textSegment, textSegmentCompressed) == 0)
 			return ExitCompressError;
+		nsoHeader.textCmpSize = textSegmentCompressed.size();
 		textSegment.resize(0);
 
 		if(compressLz4(roSegment, roSegmentCompressed) == 0)
 			return ExitCompressError;
+		nsoHeader.roCmpSize = roSegmentCompressed.size();
 		roSegment.resize(0);
 
 		if(compressLz4(dataSegment, dataSegmentCompressed) == 0)
 			return ExitCompressError;
+		nsoHeader.dataCmpSize = dataSegmentCompressed.size();
 		dataSegment.resize(0);
 	}
 
@@ -190,9 +214,27 @@ ExitStatus utils::createNsoFromNro(std::ifstream& nroStream, std::ofstream& nsoS
 	nsoHeader.dynsym.size = 0;
 	nsoHeader.reserved2.fill(0);
 
+	nsoHeader.textSegmentHeader.fileOff = sizeof(NsoHeader);
+	nsoHeader.roSegmentHeader.fileOff = nsoHeader.textSegmentHeader.fileOff + nsoHeader.textCmpSize;
+	nsoHeader.dataSegmentHeader.fileOff = nsoHeader.roSegmentHeader.fileOff + nsoHeader.roCmpSize;
+
 	if(nsoStream.good())
 	{
-		// TODO - Write header to NSO stream, then text, ro & data.
+		nsoStream.seekp(0);
+		nsoStream.write((char*)&nsoHeader, sizeof(NsoHeader));
+		if(decompressSegments)
+		{
+			nsoStream.write(textSegment.data(), textSegment.size());
+			nsoStream.write(roSegment.data(), roSegment.size());
+			nsoStream.write(dataSegment.data(), dataSegment.size());
+		}
+		else
+		{
+			nsoStream.write(textSegmentCompressed.data(), textSegmentCompressed.size());
+			nsoStream.write(roSegmentCompressed.data(), roSegmentCompressed.size());
+			nsoStream.write(dataSegmentCompressed.data(), dataSegmentCompressed.size());
+		}
+		return ExitSuccess;
 	}
 	else
 		return ExitFailInputReadError;
